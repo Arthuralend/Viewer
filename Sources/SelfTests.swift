@@ -58,12 +58,18 @@ func runSelfTests() throws {
     let hdrPixel = pixel(image)
     try require(abs(hdrPixel[0] - 2) < 0.02 && abs(hdrPixel[1] - 1.5) < 0.02,
         "Float color pipeline clipped or changed HDR samples")
+    // Check peak luminance with a neutral highlight. Saturated RGB components
+    // may exceed reference white during hue-preserving tone mapping.
+    let neutral: [Float] = [2, 2, 2, 1]
+    let neutralImage = CIImage(bitmapData: neutral.withUnsafeBytes { Data($0) }, bytesPerRow: 16,
+        size: CGSize(width: 1, height: 1), format: .RGBAf, colorSpace: linear)
     let toneMap = CIFilter.toneMapHeadroom()
-    toneMap.inputImage = image
+    toneMap.inputImage = neutralImage
     toneMap.sourceHeadroom = 2
     toneMap.targetHeadroom = 1
     guard let mapped = toneMap.outputImage else { throw NSError(domain: "SelfTests", code: 4) }
     let sdrPixel = pixel(mapped)
+    print("HDR sample: \(hdrPixel); neutral highlight after SDR tone map: \(sdrPixel)")
     try require(sdrPixel.prefix(3).allSatisfy { $0.isFinite && $0 >= -0.01 && $0 <= 1.05 },
         "Tone mapping to SDR exceeded target headroom")
     try require(sdrPixel[0] > 0.01, "Tone mapping returned an empty image")
