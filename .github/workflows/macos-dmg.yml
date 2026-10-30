@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-15-intel
     timeout-minutes: 20
     permissions:
       contents: write
@@ -31,7 +31,7 @@ jobs:
           HDRVIEWER_NO_LAUNCH: '1'
         run: bash build.command
       - name: Test decoding and HDR color pipeline
-        run: '"build/HDR Photo Viewer.app/Contents/MacOS/HDRPhotoViewer" --self-test'
+        run: bash test.command
       - name: Create and verify DMG
         env:
           HDRVIEWER_SKIP_BUILD: '1'
