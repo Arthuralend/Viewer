@@ -58,7 +58,7 @@ final class PhotoView: MTKView, MTKViewDelegate {
         self.queue = queue
         context = CIContext(mtlDevice: device, options: [
             .workingColorSpace: CGColorSpace(name: CGColorSpace.extendedLinearDisplayP3)!,
-            .workingFormat: CIFormat.RGBAh, .cacheIntermediates: false])
+            .workingFormat: CIFormat.RGBAh.rawValue, .cacheIntermediates: false])
         super.init(frame: .zero, device: device)
         colorPixelFormat = .rgba16Float
         framebufferOnly = false

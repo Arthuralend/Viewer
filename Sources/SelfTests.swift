@@ -46,7 +46,7 @@ func runSelfTests() throws {
     let image = CIImage(bitmapData: inputData, bytesPerRow: 16,
         size: CGSize(width: 1, height: 1), format: .RGBAf, colorSpace: linear)
     let context = CIContext(options: [.useSoftwareRenderer: true,
-        .workingColorSpace: linear, .workingFormat: CIFormat.RGBAf])
+        .workingColorSpace: linear, .workingFormat: CIFormat.RGBAf.rawValue])
     func pixel(_ image: CIImage) -> [Float] {
         var output = [Float](repeating: 0, count: 4)
         output.withUnsafeMutableBytes { bytes in
