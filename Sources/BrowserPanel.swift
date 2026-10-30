@@ -224,7 +224,7 @@ final class BrowserPanel: NSView, NSTableViewDataSource, NSTableViewDelegate {
         }
     }
     @objc private func openPathComponent() {
-        if let url = path.clickedPathComponentCell?.url { navigate(to: url) }
+        if let url = path.clickedPathItem?.url { navigate(to: url) }
     }
     @objc private func activateRow() {
         let row = table.clickedRow
