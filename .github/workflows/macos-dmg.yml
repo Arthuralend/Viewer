@@ -1,0 +1,63 @@
+name: Build macOS DMG
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-dmg-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Show build tools
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Build Apple Silicon application
+        env:
+          HDRVIEWER_NO_LAUNCH: '1'
+        run: bash build.command
+      - name: Test decoding and HDR color pipeline
+        run: '"build/HDR Photo Viewer.app/Contents/MacOS/HDRPhotoViewer" --self-test'
+      - name: Create and verify DMG
+        env:
+          HDRVIEWER_SKIP_BUILD: '1'
+        run: bash package-dmg.command
+      - name: Check application architecture and signature
+        run: |
+          lipo -verify_arch arm64 'build/HDR Photo Viewer.app/Contents/MacOS/HDRPhotoViewer'
+          codesign --verify --deep --strict 'build/HDR Photo Viewer.app'
+          cd build
+          shasum -a 256 'HDR Photo Viewer.dmg' > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v6
+        with:
+          name: HDR-Photo-Viewer-Apple-Silicon
+          path: |
+            build/HDR Photo Viewer.dmg
+            build/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish downloadable preview
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create "build-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}" \
+            'build/HDR Photo Viewer.dmg' build/SHA256SUMS.txt \
+            --target "$GITHUB_SHA" --prerelease \
+            --title "HDR Photo Viewer 0.2 — build ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" \
+            --notes-file Resources/RELEASE_NOTES.md
