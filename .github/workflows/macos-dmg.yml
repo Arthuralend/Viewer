@@ -38,7 +38,7 @@ jobs:
         run: bash package-dmg.command
       - name: Check application architecture and signature
         run: |
-          lipo -verify_arch arm64 'build/HDR Photo Viewer.app/Contents/MacOS/HDRPhotoViewer'
+          lipo 'build/HDR Photo Viewer.app/Contents/MacOS/HDRPhotoViewer' -verify_arch arm64
           codesign --verify --deep --strict 'build/HDR Photo Viewer.app'
           cd build
           shasum -a 256 'HDR Photo Viewer.dmg' > SHA256SUMS.txt
